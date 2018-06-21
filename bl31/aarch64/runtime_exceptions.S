@@ -15,6 +15,7 @@
 #include <smccc.h>
 
 	.globl	runtime_exceptions
+	.globl	abort_just_enabled
 
 	.globl	sync_exception_sp_el0
 	.globl	irq_sp_el0
@@ -239,7 +240,16 @@ vector_entry fiq_sp_elx
 end_vector_entry fiq_sp_elx
 
 vector_entry serror_sp_elx
-	no_ret	plat_handle_el3_ea
+	stp	x0, x1, [sp, #-16]!
+	adrp	x0, abort_just_enabled
+	ldr	x1, [x0, :lo12:abort_just_enabled]
+	mrs	x0, elr_el3
+	cmp	x0, x1
+	ldp     x0, x1, [sp], #16
+	bne	1f
+	eret
+
+1:	no_ret	plat_handle_el3_ea
 end_vector_entry serror_sp_elx
 
 	/* ---------------------------------------------------------------------
