@@ -67,6 +67,11 @@ BL32_SIZE		?=	0x2000000
 $(eval $(call add_define,BL32_BASE))
 $(eval $(call add_define,BL32_SIZE))
 
+IMX_BOOT_UART_BASE	?=	0x29870000
+$(eval $(call add_define,IMX_BOOT_UART_BASE))
+IMX_BOOT_UART_REGISTER	?=	console_lpuart_register
+$(eval $(call add_define,IMX_BOOT_UART_REGISTER))
+
 ifdef IMX8ULP_DSL_SUPPORT
 $(eval $(call add_define,IMX8ULP_DSL_SUPPORT))
 endif
