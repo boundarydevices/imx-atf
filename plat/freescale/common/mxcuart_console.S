@@ -150,7 +150,7 @@
 
 /* console_core_init */
 func console_core_init
-	mov	w0, wzr
+//	mov	w0, wzr
 	ret
 	/* Check the input base address */
 	cbz     x0, init_fail

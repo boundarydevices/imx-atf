@@ -178,13 +178,14 @@ func plat_secondary_cold_boot_setup
 endfunc plat_secondary_cold_boot_setup
 
 func plat_crash_console_init
-	/* TODO */
-	ret
+	mov_imm	x0, IMX_BOOT_UART_BASE
+	mov_imm	x1, IMX_BOOT_UART_CLK_IN_HZ
+	mov_imm	x2, IMX_CONSOLE_BAUDRATE
+	b	console_init
 endfunc plat_crash_console_init
 
 func plat_crash_console_putc
-	/* TODO */
-	ret
+	b	console_putc
 endfunc plat_crash_console_putc
 
 func platform_mem_init
