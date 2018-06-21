@@ -234,12 +234,18 @@ func plat_secondary_cold_boot_setup
 endfunc plat_secondary_cold_boot_setup
 
 func plat_crash_console_init
-	mov	x0, #1
-	ret
+	mov_imm	x0, IMX_BOOT_UART_BASE
+	mov_imm	x1, IMX_BOOT_UART_CLK_IN_HZ
+	mov_imm	x2, IMX_CONSOLE_BAUDRATE
+#ifdef IMX_BOOT_UART_REGISTER
+	b	IMX_BOOT_UART_REGISTER
+#else
+	b	console_imx_uart_register
+#endif
 endfunc plat_crash_console_init
 
 func plat_crash_console_putc
-	ret
+	b	console_putc
 endfunc plat_crash_console_putc
 
 func plat_crash_console_flush
