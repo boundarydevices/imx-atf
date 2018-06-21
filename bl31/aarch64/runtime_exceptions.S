@@ -13,6 +13,7 @@
 #include <runtime_svc.h>
 
 	.globl	runtime_exceptions
+	.globl	abort_just_enabled
 
 	/* ---------------------------------------------------------------------
 	 * This macro handles Synchronous exceptions.
@@ -196,7 +197,14 @@ vector_entry fiq_sp_elx
 	check_vector_size fiq_sp_elx
 
 vector_entry serror_sp_elx
-	no_ret	report_unhandled_exception
+	adrp	x0, abort_just_enabled
+	ldr	x1, [x0, :lo12:abort_just_enabled]
+	mrs	x0, elr_el3
+	cmp	x0, x1
+	bne	1f
+	eret
+
+1:	no_ret	report_unhandled_exception
 	check_vector_size serror_sp_elx
 
 	/* ---------------------------------------------------------------------
