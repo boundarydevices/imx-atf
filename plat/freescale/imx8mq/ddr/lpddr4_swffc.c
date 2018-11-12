@@ -11,15 +11,22 @@
 
 #include "lpddr4_dvfs.h"
 
+#define WR_POST_EXT_3200
+#ifdef WR_POST_EXT_3200  // recommend to define
+#define VAL_INIT4	0x00330008
+#else
+#define VAL_INIT4	0x00310008
+#endif
+
 //DDRC_INIT3
 #define P0_INIT3 0x00D4002D
-#define P0_INIT4 0x00310008
+#define P0_INIT4 VAL_INIT4
 #define P0_INIT6 0x0066004A
 #define P0_INIT7 0x0016004A
 
 //DDRC_FREQ1_INIT3
 #define P1_INIT3 0x0940009
-#define P1_INIT4 0x00310008
+#define P1_INIT4 VAL_INIT4
 #define P1_INIT6 0x0066004A
 #define P1_INIT7 0x0016004A
 

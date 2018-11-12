@@ -15,6 +15,11 @@
 #include <soc.h>
 
 #define WR_POST_EXT_3200
+#ifdef WR_POST_EXT_3200  // recommend to define
+#define VAL_INIT4	0x00330008
+#else
+#define VAL_INIT4	0x00310008
+#endif
 
 #if CONFIG_DDR_MB == 2048
 #define VAL_DDRC_RFSHTMG		0x00610090
@@ -94,7 +99,7 @@ static inline void umctl2_freq1(void)
 	mmio_write_32(DDRC_FREQ1_RFSHCTL0(0), 0x0020D040);
 	mmio_write_32(DDRC_FREQ1_RFSHTMG(0), VAL_DDRC_FREQ1_RFSHTMG);
 	mmio_write_32(DDRC_FREQ1_INIT3(0), 0x00940009);
-	mmio_write_32(DDRC_FREQ1_INIT4(0), 0x00310008);
+	mmio_write_32(DDRC_FREQ1_INIT4(0), VAL_INIT4);
 	mmio_write_32(DDRC_FREQ1_INIT6(0), 0x0066004A);
 	mmio_write_32(DDRC_FREQ1_INIT7(0), 0x0006004A);
 	mmio_write_32(DDRC_FREQ1_DRAMTMG0(0), 0x0B070508);
@@ -122,7 +127,7 @@ static inline void umctl2_freq2(void)
 	mmio_write_32(DDRC_FREQ2_RFSHCTL0(0), 0x0020D040);
 	mmio_write_32(DDRC_FREQ2_RFSHTMG(0), VAL_DDRC_FREQ2_RFSHTMG);
 	mmio_write_32(DDRC_FREQ2_INIT3(0), 0x00D4002D);
-	mmio_write_32(DDRC_FREQ2_INIT4(0), 0x00310008);
+	mmio_write_32(DDRC_FREQ2_INIT4(0), VAL_INIT4);
 	mmio_write_32(DDRC_FREQ2_INIT6(0), 0x0066004a);
 	mmio_write_32(DDRC_FREQ2_INIT7(0), 0x0006004A);
 	mmio_write_32(DDRC_FREQ2_DRAMTMG0(0), 0x0A010102);
@@ -154,11 +159,7 @@ void lpddr4_cfg_umctl2(void)
 	mmio_write_32(DDRC_INIT0(0), 0xC003061C);
 	mmio_write_32(DDRC_INIT1(0), 0x009E0000);
 	mmio_write_32(DDRC_INIT3(0), 0x00D4002D);
-#ifdef WR_POST_EXT_3200  /* recommened to define */
-	mmio_write_32(DDRC_INIT4(0), 0x00330008);
-#else
-	mmio_write_32(DDRC_INIT4(0), 0x00310008);
-#endif
+	mmio_write_32(DDRC_INIT4(0), VAL_INIT4);
 	mmio_write_32(DDRC_INIT6(0), 0x0066004a);
 	mmio_write_32(DDRC_INIT7(0), 0x0016004a);
 
