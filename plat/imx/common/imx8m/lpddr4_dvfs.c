@@ -9,8 +9,6 @@
 #include <dram.h>
 #include <mmio.h>
 
-#include "lpddr4_define.h"
-
 extern void dram_clock_switch(unsigned target_freq);
 
 void lpddr4_swffc(struct dram_info *info, unsigned int init_fsp,
