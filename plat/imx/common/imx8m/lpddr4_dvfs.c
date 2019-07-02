@@ -9,8 +9,6 @@
 #include <dram.h>
 #include <mmio.h>
 
-#include "lpddr4_define.h"
-
 void lpddr4_swffc(struct dram_info *info, unsigned int init_fsp,
 	 unsigned int tgt_freq, bool bypass_mode)
 
