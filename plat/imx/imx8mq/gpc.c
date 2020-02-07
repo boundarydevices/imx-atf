@@ -665,9 +665,6 @@ void imx_gpc_init(void)
 	for (i = 0; i < 4; i++)
 		mmio_write_32(gpc_imr_offset[i], ~0x1);
 
-	/* leave the IOMUX_GPC bit 12 on for core wakeup */
-	mmio_setbits_32(IMX_IOMUX_GPR_BASE + 0x4, 1 << 12);
-
 	/* use external IRQs to wakeup C0~C3 from LPM */
 	val = mmio_read_32(IMX_GPC_BASE + LPCR_A53_BSC);
 	val |= 0x40000000;
@@ -724,6 +721,11 @@ int imx_gpc_handler(uint32_t smc_fid,
 {
 	switch(x1) {
 	case FSL_SIP_CONFIG_GPC_CORE_WAKE:
+		if (!new_wake_method) {
+			new_wake_method = 1;
+			/* leave the IOMUX_GPC bit 12 on for core wakeup */
+			mmio_setbits_32(IMX_IOMUX_GPR_BASE + 0x4, 1 << 12);
+		}
 		imx_gpc_core_wake(x2);
 		break;
 	case FSL_SIP_CONFIG_GPC_SET_WAKE:
