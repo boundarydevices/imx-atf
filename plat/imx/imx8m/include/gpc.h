@@ -86,6 +86,7 @@ bool imx_m4_lpa_active(void);
 #if defined(PLAT_imx8mq)
 void imx_gpc_set_a53_core_awake(uint32_t core_id);
 void imx_gpc_core_wake(uint32_t cpumask);
+extern int new_wake_method;
 #endif
 
 #endif /*IMX8M_GPC_H */

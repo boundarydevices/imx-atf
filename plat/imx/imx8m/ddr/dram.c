@@ -274,6 +274,10 @@ int dram_dvfs_get_freq_info(void *handle, u_register_t index)
 	}
 }
 
+#if defined(PLAT_imx8mq)
+int new_wake_method;
+#endif
+
 int dram_dvfs_handler(uint32_t smc_fid, void *handle,
 	u_register_t x1, u_register_t x2, u_register_t x3)
 {
@@ -295,17 +299,32 @@ int dram_dvfs_handler(uint32_t smc_fid, void *handle,
 			if (cpu_id != i && (online_cores & (0x1 << (i * 8))))
 				plat_ic_raise_el3_sgi(0x8, i);
 #if defined(PLAT_imx8mq)
-		for (int i = 0; i < 4; i++) {
-			if (i != cpu_id && online_cores & (1 << (i * 8)))
-				imx_gpc_core_wake(1 << i);
+		if (new_wake_method) {
+			for (int i = 0; i < 4; i++) {
+				if (i != cpu_id && online_cores & (1 << (i * 8)))
+					imx_gpc_core_wake(1 << i);
+			}
+			/* make sure all the core in WFE */
+			online_cores &= ~(0x1 << (cpu_id * 8));
+			while (1)
+				if (online_cores == wfe_done)
+					break;
+		} else {
+			mmio_write_32(0x30340004, mmio_read_32(0x30340004) | (1 << 12));
+			/* make sure all the core in WFE */
+			online_cores &= ~(0x1 << (cpu_id * 8));
+			while (1)
+				if (online_cores == wfe_done)
+					break;
+			mmio_write_32(0x30340004, mmio_read_32(0x30340004) & ~(1 << 12));
 		}
-#endif
-
+#else
 		/* make sure all the core in WFE */
 		online_cores &= ~(0x1 << (cpu_id * 8));
 		while (1)
 			if (online_cores == wfe_done)
 				break;
+#endif
 
 		/* flush the L1/L2 cache */
 		dcsw_op_all(DCCSW);
