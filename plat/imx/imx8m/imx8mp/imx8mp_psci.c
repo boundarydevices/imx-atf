@@ -26,9 +26,11 @@ void imx_pwr_domain_off(const psci_power_state_t *target_state)
 	plat_gic_cpuif_disable();
 	imx_set_cpu_pwr_off(core_id);
 
-	/* TODO: Find out why this is still
-	 * needed in order not to break suspend */
-	udelay(50);
+	if (new_wake_method) {
+		/* TODO: Find out why this is still
+		 * needed in order not to break suspend */
+		udelay(50);
+	}
 }
 
 void imx_domain_suspend(const psci_power_state_t *target_state)
@@ -95,8 +97,10 @@ void imx_domain_suspend_finish(const psci_power_state_t *target_state)
 	}
 
 	if (is_local_state_off(CORE_PWR_STATE(target_state))) {
-		/* mark this core as awake by masking IRQ0 */
-		imx_gpc_set_a53_core_awake(core_id);
+		if (new_wake_method) {
+			/* mark this core as awake by masking IRQ0 */
+			imx_gpc_set_a53_core_awake(core_id);
+		}
 		imx_set_cpu_lpm(core_id, false);
 		plat_gic_cpuif_enable();
 	} else {
