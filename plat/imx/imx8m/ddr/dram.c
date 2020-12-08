@@ -221,7 +221,7 @@ void dram_info_init(unsigned long dram_timing_base)
 	if (rc)
 		panic();
 
-	if (dram_info.dram_type == DDRC_LPDDR4 && current_fsp != 0x0) {
+	if (dram_info.dram_type == DDRC_LPDDR4) {
 		/* flush the L1/L2 cache */
 		dcsw_op_all(DCCSW);
 		lpddr4_swffc(&dram_info, dev_fsp, 0x0);
