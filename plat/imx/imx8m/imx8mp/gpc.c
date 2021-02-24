@@ -209,6 +209,7 @@ void imx_gpc_pm_domain_enable(uint32_t domain_id, bool on)
 {
 	struct imx_pwr_domain *pwr_domain = &pu_domains[domain_id];
 	int i;
+	int rev_a0 = (*((uint32_t *)0x30360800) == 0x00824310) ? 1 : 0;
 
 	if (domain_id == HSIOMIX) {
 		for (i = 0; i < ARRAY_SIZE(hsiomix_clk); i++) {
@@ -233,6 +234,10 @@ void imx_gpc_pm_domain_enable(uint32_t domain_id, bool on)
 		if (domain_id == VPU_H1)
 			mmio_clrbits_32(IMX_VPU_BLK_BASE + 0x4, BIT(2));
 
+		/* disable the memory repair clock before power up */
+		if (rev_a0)
+			mmio_write_32(IMX_CCM_BASE + 0x4640, 0x0);
+
 		/* clear the PGC bit */
 		mmio_clrbits_32(IMX_GPC_BASE + pwr_domain->pgc_offset, 0x1);
 
@@ -241,6 +246,10 @@ void imx_gpc_pm_domain_enable(uint32_t domain_id, bool on)
 
 		/* wait for power request done */
 		while (mmio_read_32(IMX_GPC_BASE + PU_PGC_UP_TRG) & pwr_domain->pwr_req);
+
+		/* enable the memory repair clock after power up */
+		if (rev_a0)
+			mmio_write_32(IMX_CCM_BASE + 0x4640, 0x3);
 
 		/* wait for memory repair done */
 		wait_memrepair_done(domain_id);
@@ -302,11 +311,31 @@ void imx_gpc_pm_domain_enable(uint32_t domain_id, bool on)
 		/* set the PGC bit */
 		mmio_setbits_32(IMX_GPC_BASE + pwr_domain->pgc_offset, 0x1);
 
+		if (rev_a0) {
+			/*
+			 * leave the G1, G2, H1 power domain on until VPUMIX power off,
+			 * otherwise system will hang due to VPUMIX ACK
+			 */
+			if (domain_id == VPU_H1 || domain_id == VPU_G1 || domain_id == VPU_G2)
+				return;
+
+			/* disable the memory repair clock before power down */
+			mmio_write_32(IMX_CCM_BASE + 0x4640, 0x0);
+
+			if (domain_id == VPUMIX)
+				mmio_write_32(IMX_GPC_BASE + PU_PGC_DN_TRG, VPU_G1_PWR_REQ |
+					VPU_G2_PWR_REQ | VPU_H1_PWR_REQ);
+		}
+
 		/* power down the domain */
 		mmio_setbits_32(IMX_GPC_BASE + PU_PGC_DN_TRG, pwr_domain->pwr_req);
 
 		/* wait for power request done */
 		while (mmio_read_32(IMX_GPC_BASE + PU_PGC_DN_TRG) & pwr_domain->pwr_req);
+
+		/* enable the memory repair clock after power down */
+		if (rev_a0)
+			mmio_write_32(IMX_CCM_BASE + 0x4640, 0x3);
 
 		if (domain_id == HDMIMIX) {
 			/* disable all the clocks of HDMIMIX */
