@@ -74,6 +74,13 @@ void imx_set_cluster_standby(bool retention);
 void imx_set_cluster_powerdown(unsigned int last_core, uint8_t power_state);
 void imx_noc_slot_config(bool pdn);
 void imx_set_sys_wakeup(unsigned int last_core, bool pdn);
+#if defined(PLAT_imx8mp)
+int imx_gpc_handler_a0(uint32_t smc_fid, u_register_t x1, u_register_t x2,
+		u_register_t x3);
+void imx_domain_suspend_finish_a0(const psci_power_state_t *target_state);
+void imx_set_sys_wakeup_a0(unsigned int last_core, bool pdn);
+extern int rev_a0;
+#endif
 void imx_set_sys_lpm(unsigned last_core, bool retention);
 void imx_set_rbc_count(void);
 void imx_clear_rbc_count(void);
@@ -83,9 +90,11 @@ void imx_noc_wrapper_pre_suspend(unsigned int proc_num);
 void imx_noc_wrapper_post_resume(unsigned int proc_num);
 bool imx_m4_lpa_active(void);
 
-#if defined(PLAT_imx8mq)
+#if defined(PLAT_imx8mq) || defined(PLAT_imx8mp)
 void imx_gpc_set_a53_core_awake(uint32_t core_id);
 void imx_gpc_core_wake(uint32_t cpumask);
+#endif
+#if defined(PLAT_imx8mq)
 extern int new_wake_method;
 #endif
 

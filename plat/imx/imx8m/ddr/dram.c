@@ -298,12 +298,23 @@ int dram_dvfs_handler(uint32_t smc_fid, void *handle,
 		for (int i = 0; i < PLATFORM_CORE_COUNT; i++)
 			if (cpu_id != i && (online_cores & (0x1 << (i * 8))))
 				plat_ic_raise_el3_sgi(0x8, i);
+#if defined(PLAT_imx8mq) || defined(PLAT_imx8mp)
 #if defined(PLAT_imx8mq)
 		if (new_wake_method) {
-			for (int i = 0; i < 4; i++) {
-				if (i != cpu_id && online_cores & (1 << (i * 8)))
-					imx_gpc_core_wake(1 << i);
+			if (1)
+#else
+		if (1) {
+			if (rev_a0)
+#endif
+			{
+				for (int i = 0; i < 4; i++) {
+					if (i != cpu_id && online_cores & (1 << (i * 8)))
+						imx_gpc_core_wake(1 << i);
+				}
 			}
+#else
+		if (1) {
+#endif
 			/* make sure all the core in WFE */
 			online_cores &= ~(0x1 << (cpu_id * 8));
 			while (1)
@@ -318,13 +329,6 @@ int dram_dvfs_handler(uint32_t smc_fid, void *handle,
 					break;
 			mmio_write_32(0x30340004, mmio_read_32(0x30340004) & ~(1 << 12));
 		}
-#else
-		/* make sure all the core in WFE */
-		online_cores &= ~(0x1 << (cpu_id * 8));
-		while (1)
-			if (online_cores == wfe_done)
-				break;
-#endif
 
 		/* flush the L1/L2 cache */
 		dcsw_op_all(DCCSW);

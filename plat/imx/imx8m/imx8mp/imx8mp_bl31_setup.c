@@ -86,7 +86,7 @@ static const struct imx_csu_cfg csu_cfg[] = {
 	{0}
 };
 
-
+int rev_a0;
 static entry_point_info_t bl32_image_ep_info;
 static entry_point_info_t bl33_image_ep_info;
 
@@ -219,6 +219,9 @@ void bl31_plat_arch_setup(void)
 
 void bl31_platform_setup(void)
 {
+	uint32_t rev = mmio_read_32((uintptr_t)(IMX_ANAMIX_BASE + 0x0800));
+	rev_a0 = (rev == 0x00824310) ? 1 : 0;
+
 	generic_delay_timer_init();
 
 	/* select the CKIL source to 32K OSC */

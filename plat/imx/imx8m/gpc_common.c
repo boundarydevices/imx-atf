@@ -272,6 +272,12 @@ void imx_set_sys_lpm(unsigned int last_core, bool retention)
 	if (!imx_is_m4_enabled())
 		mmio_setbits_32(IMX_GPC_BASE + LPCR_M4, BIT(31));
 
+#if defined(PLAT_imx8mp)
+	if (rev_a0) {
+		imx_set_sys_wakeup_a0(last_core, retention);
+		return;
+	}
+#endif
 	/* config wakeup irqs' mask in gpc */
 	imx_set_sys_wakeup(last_core, retention);
 }

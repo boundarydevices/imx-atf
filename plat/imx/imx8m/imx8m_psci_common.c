@@ -64,6 +64,12 @@ void imx_pwr_domain_off(const psci_power_state_t *target_state)
 
 	plat_gic_cpuif_disable();
 	imx_set_cpu_pwr_off(core_id);
+#if defined(PLAT_imx8mp)
+	/* TODO: Find out why this is still
+	 * needed in order not to break suspend */
+	if (rev_a0)
+		udelay(50);
+#endif
 }
 
 int imx_validate_power_state(unsigned int power_state,
@@ -126,13 +132,22 @@ void imx_domain_suspend(const psci_power_state_t *target_state)
 			dram_enter_retention();
 			imx_anamix_override(true);
 			imx_noc_wrapper_pre_suspend(core_id);
+#if defined(PLAT_imx8mp)
+			if (!rev_a0)
+#endif
+				imx_set_sys_wakeup(core_id, true);
 		} else {
 			/* flag 0xD means DSP LPA buffer is in OCRAM */
 			if (mmio_read_32(IMX_SRC_BASE + LPA_STATUS) == 0xD)
 				dram_enter_retention();
+#if defined(PLAT_imx8mp)
+			if (rev_a0) {
+				imx_set_sys_wakeup_a0(core_id, true);
+				return;
+			}
+#endif
+			imx_set_sys_wakeup(core_id, true);
 		}
-
-		imx_set_sys_wakeup(core_id, true);
 	}
 }
 
