@@ -61,6 +61,8 @@ static uint32_t get_spsr_for_bl33_entry(void)
 	return spsr;
 }
 
+unsigned find_lpuart(void);
+
 void bl31_early_platform_setup2(u_register_t arg0, u_register_t arg1,
 				u_register_t arg2, u_register_t arg3)
 {
@@ -89,7 +91,7 @@ void bl31_early_platform_setup2(u_register_t arg0, u_register_t arg1,
 	mmio_write_32(0x2e200018, 0xffffffff);
 	mmio_write_32(0x2e20001c, 0x3);
 
-	console_lpuart_register(IMX_LPUART_BASE, IMX_BOOT_UART_CLK_IN_HZ,
+	console_lpuart_register(find_lpuart(), IMX_BOOT_UART_CLK_IN_HZ,
 		     IMX_CONSOLE_BAUDRATE, &console);
 
 	/* This console is only used for boot stage */
