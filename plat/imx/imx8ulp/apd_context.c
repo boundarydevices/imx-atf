@@ -313,26 +313,103 @@ void wdog3_restore(void)
 		;
 }
 
+enum pcc3_entry {
+	LPUART4_PCC3_SLOT = 57,
+	LPUART5_PCC3_SLOT = 58,
+};
+
+enum pcc4_entry {
+	LPUART6_PCC4_SLOT = 6,
+	LPUART7_PCC4_SLOT = 7,
+};
+
+#define PCC_PR_MASK	BIT(31)
+#define PCC_CGC_MASK    BIT(30)
+#define PCC_INUSE_MASK	BIT(29)
+
+static const unsigned lpuart_pcc_slots[] = {
+	IMX_PCC3_BASE + (LPUART4_PCC3_SLOT * 4),
+	IMX_PCC3_BASE + (LPUART5_PCC3_SLOT * 4),
+	IMX_PCC4_BASE + (LPUART6_PCC4_SLOT * 4),
+	IMX_PCC4_BASE + (LPUART7_PCC4_SLOT * 4),
+};
+static const unsigned lpuart_array[] = {
+	IMX_LPUART4_BASE,
+	IMX_LPUART5_BASE,
+	IMX_LPUART6_BASE,
+	IMX_LPUART7_BASE,
+};
+
+static uint32_t uart_index = 1;
+
+unsigned find_lpuart(void)
+{
+	int i;
+	unsigned val;
+
+	for (i = 0; i < ARRAY_SIZE(lpuart_pcc_slots); i++) {
+		val = mmio_read_32(lpuart_pcc_slots[i]);
+		if (!(val & PCC_PR_MASK) || (val & PCC_INUSE_MASK))
+			continue;
+		if (!(val & PCC_CGC_MASK))
+			continue;
+		uart_index = i;
+		return lpuart_array[i];
+	}
+	for (i = 0; i < ARRAY_SIZE(lpuart_array); i++) {
+		if (lpuart_array[i] == IMX_BOOT_UART_BASE) {
+			uart_index = i;
+			return IMX_BOOT_UART_BASE;
+		}
+
+	}
+	return IMX_BOOT_UART_BASE;	/* should never get here */
+}
+
+static void enable_uart_clk(void)
+{
+	if (uart_index >= ARRAY_SIZE(lpuart_pcc_slots))
+		return;
+	mmio_setbits_32(lpuart_pcc_slots[uart_index], PCC_CGC_MASK);
+}
+
 static uint32_t lpuart_regs[4];
 #define LPUART_BAUD     0x10
 #define LPUART_CTRL     0x18
 #define LPUART_FIFO     0x28
 #define LPUART_WATER    0x2c
 
+static void enable_uart()
+{
+	unsigned uart_base;
+	if (uart_index >= ARRAY_SIZE(lpuart_array))
+		return;
+	uart_base = lpuart_array[uart_index];
+	mmio_write_32(uart_base + LPUART_CTRL, 0xc0000);
+}
+
 void lpuart_save(void)
 {
-	lpuart_regs[0] = mmio_read_32(IMX_LPUART5_BASE + LPUART_BAUD);
-	lpuart_regs[1] = mmio_read_32(IMX_LPUART5_BASE + LPUART_FIFO);
-	lpuart_regs[2] = mmio_read_32(IMX_LPUART5_BASE + LPUART_WATER);
-	lpuart_regs[3] = mmio_read_32(IMX_LPUART5_BASE + LPUART_CTRL);
+	unsigned uart_base;
+	if (uart_index >= ARRAY_SIZE(lpuart_array))
+		return;
+	uart_base = lpuart_array[uart_index];
+	lpuart_regs[0] = mmio_read_32(uart_base + LPUART_BAUD);
+	lpuart_regs[1] = mmio_read_32(uart_base + LPUART_FIFO);
+	lpuart_regs[2] = mmio_read_32(uart_base + LPUART_WATER);
+	lpuart_regs[3] = mmio_read_32(uart_base + LPUART_CTRL);
 }
 
 void lpuart_restore(void)
 {
-	mmio_write_32(IMX_LPUART5_BASE + LPUART_BAUD, lpuart_regs[0]);
-	mmio_write_32(IMX_LPUART5_BASE + LPUART_FIFO, lpuart_regs[1]);
-	mmio_write_32(IMX_LPUART5_BASE + LPUART_WATER, lpuart_regs[2]);
-	mmio_write_32(IMX_LPUART5_BASE + LPUART_CTRL, lpuart_regs[3]);
+	unsigned uart_base;
+	if (uart_index >= ARRAY_SIZE(lpuart_array))
+		return;
+	uart_base = lpuart_array[uart_index];
+	mmio_write_32(uart_base + LPUART_BAUD, lpuart_regs[0]);
+	mmio_write_32(uart_base + LPUART_FIFO, lpuart_regs[1]);
+	mmio_write_32(uart_base + LPUART_WATER, lpuart_regs[2]);
+	mmio_write_32(uart_base + LPUART_CTRL, lpuart_regs[3]);
 }
 
 
@@ -418,8 +495,8 @@ void imx_apd_ctx_save(unsigned int proc_num)
 	unsigned int i;
 	uint32_t val;
 
-	/* enable LPUART5's clock by default */
-	mmio_setbits_32(IMX_PCC3_BASE + 0xe8, BIT(30));
+	/* enable LPUART's clock by default */
+	enable_uart_clk();
 
 	/* save the gic config */
 	plat_gic_save(proc_num, &imx_gicv3_ctx);
@@ -525,14 +602,14 @@ void imx_apd_ctx_restore(unsigned int proc_num)
 	mmio_write_32(IMX_CMC1_BASE + 0x18, cmc1_pmprot);
 	mmio_write_32(IMX_CMC1_BASE + 0x8c, cmc1_srie);
 
-	/* enable LPUART5's clock by default */
-	mmio_setbits_32(IMX_PCC3_BASE + 0xe8, BIT(30));
+	/* enable LPUART's clock by default */
+	enable_uart_clk();
 
 	/* restore the console lpuart */
 	lpuart_restore();
 
 	/* FIXME: make uart work for ATF */
-	mmio_write_32(0x293a0018, 0xc0000);
+	enable_uart();
 
 	/* Allow M core to reset A core */
 	mmio_clrbits_32(IMX_MU0B_BASE + 0x10, BIT(2));

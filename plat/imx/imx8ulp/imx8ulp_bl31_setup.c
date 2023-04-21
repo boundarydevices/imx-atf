@@ -59,50 +59,7 @@ static uint32_t get_spsr_for_bl33_entry(void)
 	return spsr;
 }
 
-enum pcc3_entry {
-	LPUART4_PCC3_SLOT = 57,
-	LPUART5_PCC3_SLOT = 58,
-};
-
-enum pcc4_entry {
-	LPUART6_PCC4_SLOT = 6,
-	LPUART7_PCC4_SLOT = 7,
-};
-
-#define PCC3_RBASE	0x292d0000
-#define PCC4_RBASE	0x29800000
-#define PCC_PR_MASK	BIT(31)
-#define PCC_CGC_MASK    BIT(30)
-#define PCC_INUSE_MASK	BIT(29)
-
-static unsigned find_lpuart(void)
-{
-	int i;
-	unsigned val;
-
-	static const unsigned lpuart_pcc_slots[] = {
-		PCC3_RBASE + (LPUART4_PCC3_SLOT * 4),
-		PCC3_RBASE + (LPUART5_PCC3_SLOT * 4),
-		PCC4_RBASE + (LPUART6_PCC4_SLOT * 4),
-		PCC4_RBASE + (LPUART7_PCC4_SLOT * 4),
-	};
-	static const unsigned lpuart_array[] = {
-		IMX_LPUART4_BASE,
-		IMX_LPUART5_BASE,
-		IMX_LPUART6_BASE,
-		IMX_LPUART7_BASE,
-	};
-
-	for (i = 0; i < ARRAY_SIZE(lpuart_pcc_slots); i++) {
-		val = mmio_read_32(lpuart_pcc_slots[i]);
-		if (!(val & PCC_PR_MASK) || (val & PCC_INUSE_MASK))
-			continue;
-		if (!(val & PCC_CGC_MASK))
-			continue;
-		return lpuart_array[i];
-	}
-	return IMX_BOOT_UART_BASE;
-}
+unsigned find_lpuart(void);
 
 void bl31_early_platform_setup2(u_register_t arg0, u_register_t arg1,
 				u_register_t arg2, u_register_t arg3)
