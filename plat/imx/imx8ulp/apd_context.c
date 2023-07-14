@@ -135,6 +135,7 @@ static uint32_t iomuxc_ctx[258];
 
 void apd_io_pad_off(void)
 {
+#if 0
 	int i, j;
 
 	/* off the PTD/E/F, need to be customized based on actual user case */
@@ -146,6 +147,7 @@ void apd_io_pad_off(void)
 
 	/* disable the PTD compensation */
 	mmio_write_32(IMX_SIM1_BASE + 0x48, 0x800);
+#endif
 }
 
 void iomuxc_save(void)
