@@ -152,6 +152,7 @@ void bl31_plat_arch_setup(void)
 	mmio_clrbits_32(IMX_MU0B_BASE + 0x10, BIT(2));
 }
 
+extern int upower_pmic_i2c_write(uint32_t reg_addr, uint32_t reg_val);
 extern uint32_t upower_init(void);
 extern void imx8ulp_init_scmi_server(void);
 void bl31_platform_setup(void)
@@ -166,6 +167,7 @@ void bl31_platform_setup(void)
 
 	imx8ulp_init_scmi_server();
 	upower_init();
+	upower_pmic_i2c_write(0x0B, 0x40);
 
 	xrdc_apply_apd_config();
 	xrdc_apply_lpav_config();
