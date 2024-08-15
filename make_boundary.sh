@@ -12,11 +12,13 @@ buildatf imx8mn build none bl31-iMX8MN.bin
 buildatf imx8mp build none bl31-iMX8MP.bin
 buildatf imx8mq build none bl31-iMX8MQ.bin
 buildatf imx8ulp build none bl31-iMX8ULP.bin
+buildatf imx91 build none bl31-iMX91.bin
 buildatf imx93 build none bl31-iMX93.bin
 buildatf imx8mm build-optee opteed bl31-tee-iMX8MM.bin
 buildatf imx8mn build-optee opteed bl31-tee-iMX8MN.bin
 buildatf imx8mp build-optee opteed bl31-tee-iMX8MP.bin
 buildatf imx8mq build-optee opteed bl31-tee-iMX8MQ.bin
 buildatf imx8ulp build-optee opteed bl31-tee-iMX8ULP.bin
+buildatf imx91 build-optee opteed bl31-tee-iMX91.bin
 buildatf imx93 build-optee opteed bl31-tee-iMX93.bin
 chmod a-x $UBOOT_PATH/bl31-*.bin
