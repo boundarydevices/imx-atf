@@ -324,7 +324,7 @@ endif #(E)
 CPPFLAGS		=	${DEFINES} ${INCLUDES} ${MBEDTLS_INC} -nostdinc	\
 				$(ERRORS) $(WARNINGS)
 ASFLAGS			+=	$(CPPFLAGS)                 			\
-				-ffreestanding -Wa,--fatal-warnings
+				-ffreestanding
 TF_CFLAGS		+=	$(CPPFLAGS) $(TF_CFLAGS_$(ARCH))		\
 				-ffunction-sections -fdata-sections		\
 				-ffreestanding -fno-builtin -fno-common		\
